@@ -1,4 +1,3 @@
-// filepath: .github/workflows/go.yml
 name: Go Test
 
 on:
