@@ -1,6 +1,10 @@
 # kyctl
 
+[![Go Test](https://github.com/AdebayoEmmanuel/kyctl/actions/workflows/go.yml/badge.svg)](https://github.com/AdebayoEmmanuel/kyctl/actions/workflows/go.yml)
+
 `kyctl` is a command-line interface (CLI) tool for interacting with Kyverno policies and policy reports within a Kubernetes cluster. It allows you to easily list policies, inspect their details, and view reports without needing to write complex `kubectl` commands.
+
+The tool is designed to be a lightweight wrapper around `kubectl`, simplifying common Kyverno-related queries into easy-to-remember commands.
 
 ## Features
 
@@ -13,10 +17,10 @@
 
 ## Prerequisites
 
--   Go (version 1.24 or later).
--   Access to a Kubernetes cluster.
--   `kubeconfig` file correctly set up (e.g., at `~/.kube/config`).
--   Kyverno and the Policy Reporter UI installed in the cluster.
+-   Go (version 1.24 or later) for building from source.
+-   `kubectl` installed and available in your system's `PATH`.
+-   A configured `kubeconfig` file (e.g., at `~/.kube/config`) pointing to a Kubernetes cluster.
+-   Kyverno installed in the cluster to provide the `clusterpolicies` and `policyreports` resources.
 
 ## Building from Source
 
@@ -31,10 +35,20 @@
     go build -o kyctl main.go
     ```
 
-3.  Move the binary to a directory in your `PATH`:
+3.  (Optional) Move the binary to a directory in your `PATH` for system-wide access:
     ```sh
     sudo mv kyctl /usr/local/bin/
     ```
+
+## Testing
+
+The project is fully unit-tested. The tests use an interface-based mocking approach to simulate `kubectl` calls, allowing the test suite to run without needing a live Kubernetes cluster.
+
+To run the tests, execute the following command from the project root:
+
+```sh
+go test ./... -v
+```
 
 ## Usage
 
