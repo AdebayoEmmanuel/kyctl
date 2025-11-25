@@ -1,61 +1,50 @@
 package k8s
 
 import (
+    "bytes"
     "fmt"
-    "os"
-    "path/filepath"
-
-    "k8s.io/client-go/rest"
-    "k8s.io/client-go/tools/clientcmd"
+    "os/exec"
+    "strings"
 )
 
-// GetKubernetesRESTClient returns a REST client that can make raw HTTP requests to the Kubernetes API.
-// This is a minimal approach to avoid pulling in the full client-go library.
-func GetKubernetesRESTClient() (*rest.RESTClient, error) {
-    // Get the kubeconfig file path
-    homeDir, err := os.UserHomeDir()
+// RunKubectlCommand executes a kubectl command and returns the output
+func RunKubectlCommand(args ...string) ([]byte, error) {
+    // Check if kubectl is installed
+    _, err := exec.LookPath("kubectl")
     if err != nil {
-        return nil, err
-    }
-    kubeconfigPath := filepath.Join(homeDir, ".kube", "config")
-
-    // Use the kubeconfig file to create a config
-    config, err := clientcmd.BuildConfigFromFlags("", kubeconfigPath)
-    if err != nil {
-        return nil, err
+        return nil, fmt.Errorf("kubectl not found in PATH: %w", err)
     }
 
-    // Set the API group and version for Kyverno
-    config.GroupVersion = &schema.GroupVersion{Group: "kyverno.io", Version: "v1"}
-    config.APIPath = "/apis"
+    cmd := exec.Command("kubectl", args...)
+    var out bytes.Buffer
+    var stderr bytes.Buffer
+    cmd.Stdout = &out
+    cmd.Stderr = &stderr
     
-    // Create a new RESTClient
-    restClient, err := rest.RESTClientFor(config)
+    err = cmd.Run()
     if err != nil {
-        return nil, err
+        return nil, fmt.Errorf("kubectl error: %s: %w", stderr.String(), err)
     }
-
-    return restClient, nil
+    return out.Bytes(), nil
 }
 
 // GetCurrentContext returns the current Kubernetes context and cluster name
 func GetCurrentContext() (string, string, error) {
-    homeDir, err := os.UserHomeDir()
+    // Get context
+    ctxOut, err := RunKubectlCommand("config", "current-context")
     if err != nil {
         return "", "", err
     }
-    kubeconfigPath := filepath.Join(homeDir, ".kube", "config")
+    context := strings.TrimSpace(string(ctxOut))
 
-    config, err := clientcmd.LoadFromFile(kubeconfigPath)
+    // Get cluster name
+    // We use jsonpath to extract the cluster name for the current context
+    clusterOut, err := RunKubectlCommand("config", "view", "--minify", "-o", "jsonpath={.clusters[0].name}")
     if err != nil {
-        return "", "", err
+        // Fallback if we can't get the cluster name, just return context
+        return context, "unknown", nil
     }
+    cluster := strings.TrimSpace(string(clusterOut))
 
-    currentContext := config.CurrentContext
-    context, exists := config.Contexts[currentContext]
-    if !exists {
-        return "", "", fmt.Errorf("context %s not found", currentContext)
-    }
-
-    return currentContext, context.Cluster, nil
+    return context, cluster, nil
 }
