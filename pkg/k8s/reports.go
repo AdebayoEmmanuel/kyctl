@@ -40,7 +40,7 @@ type rawReport struct {
 // GetAllPolicyReports retrieves all policy reports from the cluster
 func GetAllPolicyReports(filter string) ([]SimplePolicyReport, error) {
     // Get both PolicyReports and ClusterPolicyReports
-    output, err := RunKubectlCommand("get", "policyreports,clusterpolicyreports", "-A", "-o", "json")
+    output, err := Executor.Run("get", "policyreports,clusterpolicyreports", "-A", "-o", "json")
     if err != nil {
         return nil, fmt.Errorf("failed to get reports (ensure Kyverno is installed): %w", err)
     }

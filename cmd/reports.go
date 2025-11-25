@@ -3,15 +3,15 @@ package cmd
 import (
     "fmt"
 
-    "github.com/spf13/cobra"
     "github.com/AdebayoEmmanuel/kyctl/pkg/k8s"
+    "github.com/spf13/cobra"
 )
 
 var (
-    reportsAll bool
+    reportsAll       bool
     reportPolicyName string
-    filterStatus string
-    
+    filterStatus     string
+
     reportsCmd = &cobra.Command{
         Use:   "reports",
         Short: "View Kyverno policy reports",
@@ -23,12 +23,13 @@ var (
                     fmt.Printf("Error getting policy reports: %v\n", err)
                     return
                 }
-                
+
                 fmt.Println("Policy Reports:")
                 fmt.Println("===============")
                 for _, report := range reports {
                     fmt.Printf("Policy: %s\n", report.Policy)
-                    fmt.Printf("Resource: %s/%s\n", report.Namespace, report.Resource)
+                    // Fixed: Use .Resource directly (it includes namespace if applicable)
+                    fmt.Printf("Resource: %s\n", report.Resource)
                     fmt.Printf("Status: %s\n", report.Status)
                     if report.Message != "" {
                         fmt.Printf("Message: %s\n", report.Message)
@@ -41,11 +42,12 @@ var (
                     fmt.Printf("Error getting policy resources: %v\n", err)
                     return
                 }
-                
+
                 fmt.Printf("Resources affected by policy: %s\n", reportPolicyName)
                 fmt.Println("=====================================")
                 for _, resource := range resources {
-                    fmt.Printf("Resource: %s/%s\n", resource.Namespace, resource.Name)
+                    // Fixed: Changed resource.Name to resource.Resource to fix build error
+                    fmt.Printf("Resource: %s\n", resource.Resource)
                     fmt.Printf("Status: %s\n", resource.Status)
                     if resource.Message != "" {
                         fmt.Printf("Message: %s\n", resource.Message)
@@ -54,7 +56,7 @@ var (
                 }
             } else {
                 fmt.Println("Please specify either --all or --policy <name>")
-                cmd.Help()
+                _ = cmd.Help()
             }
         },
     }

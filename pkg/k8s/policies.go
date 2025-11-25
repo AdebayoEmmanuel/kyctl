@@ -35,7 +35,7 @@ type rawPolicy struct {
 
 // GetAllPolicies retrieves all Kyverno policies using kubectl
 func GetAllPolicies() ([]SimplePolicy, error) {
-    output, err := RunKubectlCommand("get", "clusterpolicies", "-o", "json")
+    output, err := Executor.Run("get", "clusterpolicies", "-o", "json")
     if err != nil {
         return nil, err
     }
@@ -54,7 +54,7 @@ func GetAllPolicies() ([]SimplePolicy, error) {
 
 // GetPolicy retrieves a specific Kyverno policy by name using kubectl
 func GetPolicy(name string) (*SimplePolicy, error) {
-    output, err := RunKubectlCommand("get", "clusterpolicy", name, "-o", "json")
+    output, err := Executor.Run("get", "clusterpolicy", name, "-o", "json")
     if err != nil {
         return nil, err
     }

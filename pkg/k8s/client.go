@@ -31,7 +31,7 @@ func RunKubectlCommand(args ...string) ([]byte, error) {
 // GetCurrentContext returns the current Kubernetes context and cluster name
 func GetCurrentContext() (string, string, error) {
     // Get context
-    ctxOut, err := RunKubectlCommand("config", "current-context")
+    ctxOut, err := Executor.Run("config", "current-context")
     if err != nil {
         return "", "", err
     }
@@ -39,7 +39,7 @@ func GetCurrentContext() (string, string, error) {
 
     // Get cluster name
     // We use jsonpath to extract the cluster name for the current context
-    clusterOut, err := RunKubectlCommand("config", "view", "--minify", "-o", "jsonpath={.clusters[0].name}")
+    clusterOut, err := Executor.Run("config", "view", "--minify", "-o", "jsonpath={.clusters[0].name}")
     if err != nil {
         // Fallback if we can't get the cluster name, just return context
         return context, "unknown", nil
